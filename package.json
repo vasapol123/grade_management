@@ -5,17 +5,28 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "start": "node dist/index.js"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^18.11.18",
-    "typescript": "^4.9.4"
-  },
   "dependencies": {
     "dotenv": "^16.0.3",
-    "googleapis": "^110.0.0"
+    "googleapis": "^110.0.0",
+    "prettier": "^2.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
+    "eslint": "^8.31.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-node": "^4.1.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-import": "^2.27.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "typescript": "^4.9.4"
   }
 }
