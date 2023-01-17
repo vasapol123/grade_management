@@ -9,3 +9,60 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Student {
+  id            Int            @id @default(autoincrement())
+  year          String
+  Registrations Registration[]
+  Grades        Grade[]
+  GPA           GPA[]
+  GPAX          GPAX?
+}
+
+model Course {
+  id            Int            @id @default(autoincrement())
+  code          String         @unique
+  name          String
+  credit        Int
+  Registrations Registration[]
+  Grade         Grade?
+}
+
+model Grade {
+  id     Int    @id @default(autoincrement())
+  result String
+
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId Int
+  course    Course  @relation(fields: [courseId], references: [id])
+  courseId  Int     @unique
+}
+
+model GPA {
+  id           Int    @id @default(autoincrement())
+  semester     String
+  academicYear String
+  result       Float
+
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId Int
+}
+
+model GPAX {
+  id     Int    @id @default(autoincrement())
+  result Float
+
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId Int     @unique
+}
+
+model Registration {
+  id           Int    @id @default(autoincrement())
+  semester     String
+  academicYear String
+
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId Int
+  course    Course  @relation(fields: [courseId], references: [id])
+  courseId  Int
+}
