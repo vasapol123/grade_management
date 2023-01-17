@@ -12,7 +12,7 @@ datasource db {
 
 model Student {
   id            Int            @id @default(autoincrement())
-  year          String
+  year          Int
   Registrations Registration[]
   Grades        Grade[]
   AveragePoint  AveragePoint[]
