@@ -8,4 +8,4 @@ const spreadsheetHandler = new SpreadSheetHandler(
 );
 const prisma = new PrismaClient();
 
-console.log(await spreadsheetHandler.getRow('6301012620171', 42));
+console.log(await spreadsheetHandler.getRow('6301012620171', 3));

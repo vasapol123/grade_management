@@ -7,10 +7,10 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 enum MergedCell {
-  ACADEMIC_YEAR = 'A',
-  SEMESTER = 'B',
-  GPA = 'G',
-  GPAX = 'H',
+  ACADEMIC_YEAR = 1,
+  SEMESTER = 2,
+  GPA = 7,
+  GPAX = 8,
 }
 
 const auth = new google.auth.GoogleAuth({
@@ -24,6 +24,8 @@ const sheets = google.sheets({
 });
 
 export default class SpreadSheetHandler {
+  private rawData: string[][] | null | undefined;
+
   constructor(
     private readonly spreadsheetId: string,
     private readonly googleAuth: Auth.GoogleAuth = auth,
@@ -32,14 +34,24 @@ export default class SpreadSheetHandler {
     this.spreadsheetId = spreadsheetId;
   }
 
-  public async getHeader(sheet_name: string): Promise<string[]> {
+  public async fetchData(
+    sheet_name: string
+  ): Promise<string[][] | null | undefined> {
     const response = await this.googleSheets.spreadsheets.values.get({
       auth: this.googleAuth,
       spreadsheetId: this.spreadsheetId,
-      range: `${sheet_name}!A1:H1`,
+      range: `${sheet_name}!A1:Z1000`,
     });
 
-    return response.data.values![0];
+    return response.data.values;
+  }
+
+  public async getHeader(sheet_name: string): Promise<string[]> {
+    if (!this.rawData) {
+      this.rawData = await this.fetchData(sheet_name);
+    }
+
+    return this.rawData![0];
   }
 
   public async getCell(sheet_name: string, value: string) {
@@ -54,13 +66,11 @@ export default class SpreadSheetHandler {
 
   public async getRow(sheet_name: string, num: number): Promise<string[]> {
     try {
-      const response = await this.googleSheets.spreadsheets.values.get({
-        auth: this.googleAuth,
-        spreadsheetId: this.spreadsheetId,
-        range: `${sheet_name}!A${num}:H${num}`,
-      });
+      if (!this.rawData) {
+        this.rawData = await this.fetchData(sheet_name);
+      }
 
-      const unpopulatedRow = <string[]>response.data.values![0];
+      const unpopulatedRow = <string[]>this.rawData![num - 1];
 
       const populatedRow = await Promise.all(
         (<(keyof typeof MergedCell | string)[]>(
@@ -87,25 +97,34 @@ export default class SpreadSheetHandler {
     }
   }
 
+  public async getCol(sheet_name: string, num: number) {
+    try {
+      if (!this.rawData) {
+        this.rawData = await this.fetchData(sheet_name);
+      }
+
+      const col = this.rawData!.map((curr) => {
+        if (!curr[num - 1]) return [];
+        return [curr[num - 1]];
+      });
+
+      return col;
+    } catch (e) {
+      throw Error((<GaxiosError>e).response?.statusText);
+    }
+  }
+
   private async populateMergedCol(
     sheet_name: string,
     value: keyof typeof MergedCell
   ): Promise<string[][]> {
     try {
-      const range = `${sheet_name}!${MergedCell[value]}:${MergedCell[value]}`;
+      const col = await this.getCol(sheet_name, MergedCell[value]);
 
-      const response = await this.googleSheets.spreadsheets.values.get({
-        auth: this.googleAuth,
-        spreadsheetId: this.spreadsheetId,
-        range,
-      });
-
-      (response.data.values! as string[][]).map((curr, i, arr) => {
+      return col.map((curr, i, arr) => {
         if (!curr.length) arr[i].push(arr[i - 1][0]);
         return curr;
       });
-
-      return response.data.values!;
     } catch (e) {
       throw Error((<GaxiosError>e).response?.statusText);
     }
