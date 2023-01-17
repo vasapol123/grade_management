@@ -15,8 +15,7 @@ model Student {
   year          String
   Registrations Registration[]
   Grades        Grade[]
-  GPA           GPA[]
-  GPAX          GPAX?
+  AveragePoint  AveragePoint[]
 }
 
 model Course {
@@ -38,22 +37,15 @@ model Grade {
   courseId  Int     @unique
 }
 
-model GPA {
+model AveragePoint {
   id           Int    @id @default(autoincrement())
   semester     String
   academicYear String
-  result       Float
+  gpa          String
+  gpax         String
 
   student   Student @relation(fields: [studentId], references: [id])
   studentId Int
-}
-
-model GPAX {
-  id     Int    @id @default(autoincrement())
-  result Float
-
-  student   Student @relation(fields: [studentId], references: [id])
-  studentId Int     @unique
 }
 
 model Registration {

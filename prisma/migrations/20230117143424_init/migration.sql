@@ -27,23 +27,15 @@ CREATE TABLE "Grade" (
 );
 
 -- CreateTable
-CREATE TABLE "GPA" (
+CREATE TABLE "AveragePoint" (
     "id" SERIAL NOT NULL,
     "semester" TEXT NOT NULL,
     "academicYear" TEXT NOT NULL,
-    "result" DOUBLE PRECISION NOT NULL,
+    "gpa" TEXT NOT NULL,
+    "gpax" TEXT NOT NULL,
     "studentId" INTEGER NOT NULL,
 
-    CONSTRAINT "GPA_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "GPAX" (
-    "id" SERIAL NOT NULL,
-    "result" DOUBLE PRECISION NOT NULL,
-    "studentId" INTEGER NOT NULL,
-
-    CONSTRAINT "GPAX_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "AveragePoint_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -63,9 +55,6 @@ CREATE UNIQUE INDEX "Course_code_key" ON "Course"("code");
 -- CreateIndex
 CREATE UNIQUE INDEX "Grade_courseId_key" ON "Grade"("courseId");
 
--- CreateIndex
-CREATE UNIQUE INDEX "GPAX_studentId_key" ON "GPAX"("studentId");
-
 -- AddForeignKey
 ALTER TABLE "Grade" ADD CONSTRAINT "Grade_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -73,10 +62,7 @@ ALTER TABLE "Grade" ADD CONSTRAINT "Grade_studentId_fkey" FOREIGN KEY ("studentI
 ALTER TABLE "Grade" ADD CONSTRAINT "Grade_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GPA" ADD CONSTRAINT "GPA_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "GPAX" ADD CONSTRAINT "GPAX_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "AveragePoint" ADD CONSTRAINT "AveragePoint_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Registration" ADD CONSTRAINT "Registration_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
