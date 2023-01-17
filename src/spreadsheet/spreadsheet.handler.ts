@@ -34,6 +34,15 @@ export default class SpreadSheetHandler {
     this.spreadsheetId = spreadsheetId;
   }
 
+  public async getSheets() {
+    const response = await this.googleSheets.spreadsheets.get({
+      auth: this.googleAuth,
+      spreadsheetId: this.spreadsheetId,
+    });
+
+    return response.data.sheets!;
+  }
+
   public async fetchData(
     sheet_name: string
   ): Promise<string[][] | null | undefined> {
