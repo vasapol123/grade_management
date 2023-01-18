@@ -11,33 +11,28 @@ datasource db {
 }
 
 model Student {
-  id            Int            @id @default(autoincrement())
-  year          Int
-  Registrations Registration[]
-  Grades        Grade[]
-  AveragePoint  AveragePoint[]
+  id                  Int                  @id @default(autoincrement())
+  year                Int
+  Enrollments         Enrollment[]
+  GradeAverageReports GradeAverageReport[]
 }
 
 model Course {
-  id            Int            @id @default(autoincrement())
-  code          String         @unique
-  name          String
-  credit        Int
-  Registrations Registration[]
-  Grade         Grade?
+  id          Int          @id @default(autoincrement())
+  code        String       @unique
+  name        String
+  credit      Int
+  Enrollments Enrollment[]
 }
 
-model Grade {
-  id     Int    @id @default(autoincrement())
-  result String
-
-  student   Student @relation(fields: [studentId], references: [id])
-  studentId Int
-  course    Course  @relation(fields: [courseId], references: [id])
-  courseId  Int     @unique
+model GradeReport {
+  id         Int         @id @default(autoincrement())
+  letter     String
+  number     Float
+  Enrollment Enrollment?
 }
 
-model AveragePoint {
+model GradeAverageReport {
   id           Int    @id @default(autoincrement())
   semester     String
   academicYear String
@@ -48,13 +43,15 @@ model AveragePoint {
   studentId Int
 }
 
-model Registration {
+model Enrollment {
   id           Int    @id @default(autoincrement())
   semester     String
   academicYear String
 
-  student   Student @relation(fields: [studentId], references: [id])
-  studentId Int
-  course    Course  @relation(fields: [courseId], references: [id])
-  courseId  Int
+  student       Student     @relation(fields: [studentId], references: [id])
+  studentId     Int
+  gradeReport   GradeReport @relation(fields: [gradeReportId], references: [id])
+  gradeReportId Int         @unique
+  course        Course      @relation(fields: [courseId], references: [id])
+  courseId      Int
 }
