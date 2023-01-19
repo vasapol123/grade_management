@@ -1,3 +1,5 @@
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable camelcase */
 import { google, sheets_v4, Auth } from 'googleapis';
@@ -23,15 +25,31 @@ const sheets = google.sheets({
   auth: await auth.getClient(),
 });
 
-export default class SpreadSheetHandler {
-  private rawData: string[][] | null | undefined;
+export default class SpreadsheetHandler {
+  private static instance: SpreadsheetHandler;
 
-  constructor(
+  private _rawData: string[][] | null | undefined;
+
+  private constructor(
     private readonly spreadsheetId: string,
     private readonly googleAuth: Auth.GoogleAuth = auth,
     private readonly googleSheets: sheets_v4.Sheets = sheets
   ) {
     this.spreadsheetId = spreadsheetId;
+  }
+
+  public static getInstance(): SpreadsheetHandler {
+    if (!SpreadsheetHandler.instance) {
+      SpreadsheetHandler.instance = new SpreadsheetHandler(
+        <string>process.env.SPREADSHEET_ID
+      );
+    }
+
+    return SpreadsheetHandler.instance;
+  }
+
+  public get rawData() {
+    return this._rawData;
   }
 
   public async getSheets() {
@@ -43,7 +61,7 @@ export default class SpreadSheetHandler {
     return response.data.sheets!;
   }
 
-  public async fetchData(
+  private async fetchData(
     sheet_name: string
   ): Promise<string[][] | null | undefined> {
     const response = await this.googleSheets.spreadsheets.values.get({
@@ -56,11 +74,11 @@ export default class SpreadSheetHandler {
   }
 
   public async getHeader(sheet_name: string): Promise<string[]> {
-    if (!this.rawData) {
-      this.rawData = await this.fetchData(sheet_name);
+    if (!this._rawData) {
+      this._rawData = await this.fetchData(sheet_name);
     }
 
-    return this.rawData![0];
+    return this._rawData![0];
   }
 
   public async getCell(sheet_name: string, value: string) {
@@ -75,11 +93,11 @@ export default class SpreadSheetHandler {
 
   public async getRow(sheet_name: string, num: number): Promise<string[]> {
     try {
-      if (!this.rawData) {
-        this.rawData = await this.fetchData(sheet_name);
+      if (!this._rawData) {
+        this._rawData = await this.fetchData(sheet_name);
       }
 
-      const unpopulatedRow = <string[]>this.rawData![num - 1];
+      const unpopulatedRow = <string[]>this._rawData![num - 1];
 
       const populatedRow = await Promise.all(
         (<(keyof typeof MergedCell | string)[]>(
@@ -108,13 +126,13 @@ export default class SpreadSheetHandler {
 
   public async getCol(sheet_name: string, num: number) {
     try {
-      if (!this.rawData) {
-        this.rawData = await this.fetchData(sheet_name);
+      if (!this._rawData) {
+        this._rawData = await this.fetchData(sheet_name);
       }
 
-      const col = this.rawData!.map((curr) => {
+      const col = this._rawData!.map((curr) => {
         if (!curr[num - 1]) return [];
-        return [curr[num - 1]];
+        return [curr[num - 1].trim()];
       });
 
       return col;
