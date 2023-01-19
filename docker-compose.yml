@@ -1,6 +1,18 @@
 version: '3.8'
 
 services:
+  cache:
+    image: redis:7.0.8-alpine
+    restart: always
+    ports:
+      - 6379:6379
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
+    volumes:
+      - ./.redis:/data
+    command: sh -c "redis-server --appendonly yes"
+
   dev-db:
     image: postgres:latest
     restart: always
