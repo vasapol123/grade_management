@@ -1,15 +1,16 @@
 /* eslint-disable import/no-unresolved */
 // import { studentCodeToYear } from './spreadsheet/spreadsheet.helper.js';
-import redis from 'redis';
 import SpreadsheetHelper from './spreadsheet/spreadsheet.helper.js';
 import DatabaseHandler from './database.handler.js';
 import SpreadsheetHandler from './spreadsheet/spreadsheet.handler.js';
 
-const spreadsheetHandler = SpreadsheetHandler.getInstance();
+const spreadsheetHandler = await SpreadsheetHandler.getInstance(
+  '6301012620171'
+);
 const spreadsheetHelper = new SpreadsheetHelper();
 const databaseHandler = new DatabaseHandler();
 
-const sheets = await spreadsheetHandler.getSheets();
+const sheets = await SpreadsheetHandler.getSheets();
 const sheetTitles = sheets.map((curr) => {
   return <string>curr.properties?.title;
 });
@@ -18,11 +19,6 @@ const sheetTitles = sheets.map((curr) => {
 //   sheets.map((curr) => { year: studentCodeToYear(<string>curr.properties?.title) })
 // );
 
-const client = redis.createClient({
-  url: process.env.REDIS_URL,
-});
+// spreadsheetHandler.fetchData('6301012620171');
 
-client.connect().then(async () => {
-  console.log(await client.get('key'));
-  client.quit();
-});
+console.log(spreadsheetHandler.getHeader());
