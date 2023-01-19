@@ -1,16 +1,12 @@
 module.exports = {
 	root: true,
-  ignorePatterns: [".eslintrc.cjs"],
-	env: {
-		'browser': true,
-		'es6': true,
-		'node': true
-	},
+  ignorePatterns: ['.eslintrc.cjs'],
 	extends: [
 		'airbnb-base',
-		'prettier',
+		'plugin:import/typescript',
 		'plugin:@typescript-eslint/recommended',
-		"plugin:prettier/recommended"
+		'prettier',
+		'plugin:prettier/recommended'
 	],
 	overrides: [],
 	parser: '@typescript-eslint/parser',
@@ -18,10 +14,32 @@ module.exports = {
 		'ecmaVersion': 'latest',
 		'sourceType': 'module'
 	},
-	plugins: [
-		'@typescript-eslint'
-	],
 	rules: {
-		'no-shadow': 'off'
-	}
+		'no-shadow': 'off',
+		'import/no-unresolved': [
+      2, 
+      { 'caseSensitive': false }
+   	],
+		'import/extensions': [
+      'error',
+      'ignorePackages',
+      {
+        'js': 'never',
+        'jsx': 'never',
+        'ts': 'never',
+        'tsx': 'never'
+      }
+   ]
+	},
+	settings: {
+    'import/resolver': {
+			typescript: {
+				project: 'tsconfig.json',
+			},
+      node: {
+				project: 'tsconfig.json',
+        extensions: ['.js', '.jsx', '.ts', '.tsx']
+      }
+    }
+  }
 };
