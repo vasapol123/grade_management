@@ -1,12 +1,12 @@
 /* eslint-disable no-use-before-define */
 import { Prisma, Course } from '@prisma/client';
-import SpreadsheetHandler from './spreadsheet.handler.js';
+import SpreadsheetHandler from './spreadsheet/spreadsheet-handler.js';
 
 const spreadsheetHandler = await SpreadsheetHandler.getInstance(
   '6301012620171'
 );
 
-export default class SpreadsheetHelper {
+export default class DataPreparer {
   static studentCodeToYear(studentCode: string): number {
     const currentYear = Number(
       (Number(new Date().getFullYear()) + 543).toString().slice(-2)
@@ -17,7 +17,7 @@ export default class SpreadsheetHelper {
     return studentYear;
   }
 
-  static async getCourses() {
+  static async prepareCourseData() {
     const headers = await spreadsheetHandler.getHeader();
     const courseScalarFieldEnum = Object.values(Prisma.CourseScalarFieldEnum);
 
