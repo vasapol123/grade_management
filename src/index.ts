@@ -16,12 +16,7 @@ const sheetTitles = sheets.map((curr) => {
   return <string>curr.properties?.title;
 });
 
-// databaseHandler.createStudents(
-//   sheets.map((curr) => { year: studentCodeToYear(<string>curr.properties?.title) })
-// );
-
-// spreadsheetHandler.fetchData('6301012620171');
-
-console.log(await spreadsheetHandler.getRow(3));
+console.log(await SpreadsheetHelper.getCourses());
+// console.log(spreadsheetHandler.rawData);
 
 await disconnect();

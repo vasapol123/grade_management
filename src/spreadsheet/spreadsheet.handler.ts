@@ -36,7 +36,10 @@ export default class SpreadsheetHandler {
 
   private _rawData!: string[][];
 
-  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-empty-function
+  /* 
+    eslint-disable-next-line no-useless-constructor, 
+    @typescript-eslint/no-empty-function
+  */
   private constructor() {}
 
   public static async getInstance(
@@ -53,11 +56,15 @@ export default class SpreadsheetHandler {
     return instance;
   }
 
+  public get rawData() {
+    return this._rawData;
+  }
+
   public set rawData(value: string[][]) {
     this._rawData = value;
   }
 
-  static async getSheets() {
+  public static async getSheets() {
     const response = await SpreadsheetHandler.googleSheets.spreadsheets.get({
       auth: SpreadsheetHandler.googleAuth,
       spreadsheetId: <string>process.env.SPREADSHEET_ID,
@@ -66,7 +73,7 @@ export default class SpreadsheetHandler {
     return response.data.sheets!;
   }
 
-  static async fetchData(sheetName: string): Promise<string[][]> {
+  public static async fetchData(sheetName: string): Promise<string[][]> {
     if (!(await redisClient.get('rawData'))) {
       const response =
         await SpreadsheetHandler.googleSheets.spreadsheets.values.get({
@@ -99,7 +106,7 @@ export default class SpreadsheetHandler {
                 <keyof typeof MergedCell>curr.toUpperCase()
               );
               if (!unpopulatedRow[i]) {
-                return col[num][0] || col[col.length - 1][0];
+                return col[num - 1][0] || col[col.length - 1][0];
               }
             }
             return unpopulatedRow[i];
