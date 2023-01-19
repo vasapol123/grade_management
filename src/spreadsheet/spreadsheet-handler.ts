@@ -1,8 +1,18 @@
+/*
+ * 🎉 Phase 1 — Spreadsheet Data Fetching
+ * Spreadsheet Data Fetching refers to the process of importing or retrieving
+ * data from a spreadsheet, which is Google Sheets in this case, and using it
+ * in another program or application. The data will be used for inputting in-
+ * formation into a database. However, it can be also used for other variety
+ * of purposes, such as creating charts and graphs, analyzing trends. Spread-
+ * sheet Data Fetching will also include the ability to filter and manipulate
+ * the data to meet specific needs.
+ *
+ */
+
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable camelcase */
-import { google, sheets_v4, Auth } from 'googleapis';
+import { google, sheets_v4 as sheetsv4, Auth } from 'googleapis';
 import { GaxiosError } from 'gaxios';
 import * as dotenv from 'dotenv';
 
@@ -32,7 +42,7 @@ export default class SpreadsheetHandler {
 
   private static googleAuth: Auth.GoogleAuth = auth;
 
-  private static googleSheets: sheets_v4.Sheets = sheets;
+  private static googleSheets: sheetsv4.Sheets = sheets;
 
   private _rawData!: string[][];
 
