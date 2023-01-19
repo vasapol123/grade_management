@@ -1,5 +1,6 @@
 /* eslint-disable import/no-unresolved */
 // import { studentCodeToYear } from './spreadsheet/spreadsheet.helper.js';
+import { disconnect } from './redis-connection.js';
 import SpreadsheetHelper from './spreadsheet/spreadsheet.helper.js';
 import DatabaseHandler from './database.handler.js';
 import SpreadsheetHandler from './spreadsheet/spreadsheet.handler.js';
@@ -21,4 +22,6 @@ const sheetTitles = sheets.map((curr) => {
 
 // spreadsheetHandler.fetchData('6301012620171');
 
-console.log(spreadsheetHandler.getHeader());
+console.log(await spreadsheetHandler.getRow(3));
+
+await disconnect();
