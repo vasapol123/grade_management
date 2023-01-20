@@ -11,11 +11,10 @@
 
 /* eslint-disable no-use-before-define */
 import { Prisma, Course } from '@prisma/client';
-import SpreadsheetHandler from './spreadsheet/worksheet-handler.js';
+import { GRADE_MAPPING } from './common/constant.js';
+import WooksheetHandler from './spreadsheet/worksheet-handler.js';
 
-const spreadsheetHandler = await SpreadsheetHandler.getInstance(
-  '6301012620171'
-);
+const wooksheetHandler = await WooksheetHandler.getInstance('6301012620171');
 
 export default class DataPreparer {
   static studentCodeToYear(studentCode: string): number {
@@ -29,17 +28,17 @@ export default class DataPreparer {
   }
 
   static async prepareCourseData(): Promise<{ [name: string]: string }[]> {
-    const headers = await spreadsheetHandler.getHeader();
+    const headers = await wooksheetHandler.getHeader();
     const courseScalarFieldEnum = Object.values(Prisma.CourseScalarFieldEnum);
 
     const courses: { [name: string]: string }[] = [];
 
     await Promise.all(
-      Array(spreadsheetHandler.rawData.length)
+      Array(wooksheetHandler.rawData.length)
         .fill(0)
         .map(async (curr, i) => {
           if (i > 1) {
-            await spreadsheetHandler.getRow(i + 1).then((values) => {
+            await wooksheetHandler.getRow(i + 1).then((values) => {
               const course = {};
               headers.map((header) => {
                 const idx = courseScalarFieldEnum.findIndex((el) =>
@@ -61,8 +60,37 @@ export default class DataPreparer {
     return courses;
   }
 
+  static async prepareGradeReportData() {
+    const headers = await wooksheetHandler.getHeader();
+
+    const gradeReports: { [name: string]: string }[] = [];
+
+    await Promise.all(
+      Array(wooksheetHandler.rawData.length)
+        .fill(0)
+        .map(async (curr, i) => {
+          if (i > 1) {
+            await wooksheetHandler.getRow(i + 1).then((values) => {
+              console.log(values);
+              const gradeReport = {};
+              const idx = headers.findIndex((el) => el === 'grade');
+              if (idx !== -1) {
+                Object.assign(gradeReport, {
+                  letter: values[idx].trim(),
+                  number: GRADE_MAPPING[values[idx]],
+                });
+              }
+              gradeReports.push(gradeReport);
+            });
+          }
+          return curr;
+        })
+    );
+    return gradeReports;
+  }
+
   static async prepareStudentData(): Promise<{ [name: string]: string }[]> {
-    const headers = await spreadsheetHandler.getHeader();
+    const headers = await wooksheetHandler.getHeader();
     const studentScalarFieldEnum = Object.values(Prisma.StudentScalarFieldEnum);
 
     const studentYears: { [name: string]: string }[] = [];
@@ -73,7 +101,7 @@ export default class DataPreparer {
       if (idx !== -1) {
         Object.assign(studentYear, {
           [studentScalarFieldEnum[idx]]: DataPreparer.studentCodeToYear(
-            <string>spreadsheetHandler.sheetName
+            <string>wooksheetHandler.sheetName
           ),
         });
       }

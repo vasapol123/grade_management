@@ -6,9 +6,21 @@ export enum Attributes {
   COURSE_CODE,
   COURSE_NAME,
   CREDIT,
+  GRADE,
   GPA,
   GPAX,
 }
+
+export const GRADE_MAPPING: { [letter: string]: number } = {
+  A: 4,
+  'B+': 3.5,
+  B: 3,
+  'C+': 2.5,
+  C: 2,
+  'D+': 1.5,
+  D: 1,
+  F: 0,
+};
 
 export const AUTH = new google.auth.GoogleAuth({
   keyFile: 'credentials.json',

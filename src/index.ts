@@ -3,15 +3,13 @@
 import { disconnect } from './redis-connection.js';
 import SpreadsheetHelper from './data-preparer.js';
 import DatabaseHandler from './database-handler.js';
-import SpreadsheetHandler from './spreadsheet/worksheet-handler.js';
+import WooksheetHandler from './spreadsheet/worksheet-handler.js';
 
-const spreadsheetHandler = await SpreadsheetHandler.getInstance(
-  '6301012620171'
-);
+const wooksheetHandler = await WooksheetHandler.getInstance('6301012620171');
 const spreadsheetHelper = new SpreadsheetHelper();
 const databaseHandler = new DatabaseHandler();
 
-console.log(await SpreadsheetHelper.prepareStudentData());
+console.log(await SpreadsheetHelper.prepareGradeReportData());
 // console.log(spreadsheetHandler.rawData);
 
 await disconnect();
