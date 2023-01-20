@@ -40,6 +40,8 @@ export default class SpreadsheetHandler {
 
   private _rawData!: string[][];
 
+  private _sheetName!: string;
+
   /* 
     eslint-disable-next-line no-useless-constructor, 
     @typescript-eslint/no-empty-function
@@ -55,6 +57,7 @@ export default class SpreadsheetHandler {
       instance = new SpreadsheetHandler();
     }
 
+    instance.sheetName = sheetName;
     instance.rawData = await SpreadsheetHandler.fetchData(sheetName);
 
     return instance;
@@ -66,6 +69,14 @@ export default class SpreadsheetHandler {
 
   public set rawData(value: string[][]) {
     this._rawData = value;
+  }
+
+  public get sheetName() {
+    return this._sheetName;
+  }
+
+  public set sheetName(value: string) {
+    this._sheetName = value;
   }
 
   public static async getSheets() {

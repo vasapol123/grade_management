@@ -28,11 +28,11 @@ export default class DataPreparer {
     return studentYear;
   }
 
-  static async prepareCourseData() {
+  static async prepareCourseData(): Promise<{ [name: string]: string }[]> {
     const headers = await spreadsheetHandler.getHeader();
     const courseScalarFieldEnum = Object.values(Prisma.CourseScalarFieldEnum);
 
-    const courses: { [key in Omit<Course, 'id'> as string]: string }[] = [];
+    const courses: { [name: string]: string }[] = [];
 
     await Promise.all(
       Array(spreadsheetHandler.rawData.length)
@@ -59,5 +59,28 @@ export default class DataPreparer {
         })
     );
     return courses;
+  }
+
+  static async prepareStudentData(): Promise<{ [name: string]: string }[]> {
+    const headers = await spreadsheetHandler.getHeader();
+    const studentScalarFieldEnum = Object.values(Prisma.StudentScalarFieldEnum);
+
+    const studentYears: { [name: string]: string }[] = [];
+
+    const studentYear = {};
+    headers.map((header) => {
+      const idx = studentScalarFieldEnum.findIndex((el) => header.includes(el));
+      if (idx !== -1) {
+        Object.assign(studentYear, {
+          [studentScalarFieldEnum[idx]]: DataPreparer.studentCodeToYear(
+            <string>spreadsheetHandler.sheetName
+          ),
+        });
+      }
+      return header;
+    });
+    studentYears.push(studentYear);
+
+    return studentYears;
   }
 }

@@ -11,12 +11,7 @@ const spreadsheetHandler = await SpreadsheetHandler.getInstance(
 const spreadsheetHelper = new SpreadsheetHelper();
 const databaseHandler = new DatabaseHandler();
 
-const sheets = await SpreadsheetHandler.getSheets();
-const sheetTitles = sheets.map((curr) => {
-  return <string>curr.properties?.title;
-});
-
-console.log(await SpreadsheetHelper.prepareCourseData());
+console.log(await SpreadsheetHelper.prepareStudentData());
 // console.log(spreadsheetHandler.rawData);
 
 await disconnect();
