@@ -17,15 +17,9 @@ import { GaxiosError } from 'gaxios';
 import * as dotenv from 'dotenv';
 
 import redisClient from '../redis-connection.js';
+import { Attributes } from '../common/constant.js';
 
 dotenv.config();
-
-enum MergedCell {
-  ACADEMIC_YEAR = 1,
-  SEMESTER = 2,
-  GPA = 7,
-  GPAX = 8,
-}
 
 const auth = new google.auth.GoogleAuth({
   keyFile: 'credentials.json',
@@ -107,13 +101,13 @@ export default class SpreadsheetHandler {
       const unpopulatedRow = <string[]>this._rawData[num - 1];
 
       const populatedRow = await Promise.all(
-        (<(keyof typeof MergedCell | string)[]>await this.getHeader()).map(
+        (<(keyof typeof Attributes | string)[]>await this.getHeader()).map(
           async (curr, i) => {
             if (
-              (<string[]>Object.keys(MergedCell)).includes(curr.toUpperCase())
+              (<string[]>Object.keys(Attributes)).includes(curr.toUpperCase())
             ) {
               const col = await this.populateMergedCol(
-                <keyof typeof MergedCell>curr.toUpperCase()
+                <keyof typeof Attributes>curr.toUpperCase()
               );
               if (!unpopulatedRow[i]) {
                 return col[num - 1][0] || col[col.length - 1][0];
@@ -144,10 +138,10 @@ export default class SpreadsheetHandler {
   }
 
   private async populateMergedCol(
-    value: keyof typeof MergedCell
+    value: keyof typeof Attributes
   ): Promise<string[][]> {
     try {
-      const col = await this.getCol(MergedCell[value]);
+      const col = await this.getCol(Attributes[value]);
 
       return col.map((curr, i, arr) => {
         if (!curr.length) arr[i].push(arr[i - 1][0]);
