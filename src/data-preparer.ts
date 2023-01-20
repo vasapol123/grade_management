@@ -11,7 +11,7 @@
 
 /* eslint-disable no-use-before-define */
 import { Prisma, Course } from '@prisma/client';
-import SpreadsheetHandler from './spreadsheet/spreadsheet-handler.js';
+import SpreadsheetHandler from './spreadsheet/worksheet-handler.js';
 
 const spreadsheetHandler = await SpreadsheetHandler.getInstance(
   '6301012620171'

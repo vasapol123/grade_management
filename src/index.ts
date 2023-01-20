@@ -3,7 +3,7 @@
 import { disconnect } from './redis-connection.js';
 import SpreadsheetHelper from './data-preparer.js';
 import DatabaseHandler from './database-handler.js';
-import SpreadsheetHandler from './spreadsheet/spreadsheet-handler.js';
+import SpreadsheetHandler from './spreadsheet/worksheet-handler.js';
 
 const spreadsheetHandler = await SpreadsheetHandler.getInstance(
   '6301012620171'
