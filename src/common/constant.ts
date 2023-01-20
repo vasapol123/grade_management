@@ -1,11 +1,11 @@
 import { google } from 'googleapis';
 
 export enum Attributes {
-  ACADEMICYEAR = 1,
+  ACADEMIC_YEAR = 1,
   SEMESTER,
-  COURSECODE,
-  COURSENAME,
-  CREDIT,
+  COURSE_CODE,
+  COURSE_NAME,
+  COURSE_CREDIT,
   GRADE,
   GPA,
   GPAX,

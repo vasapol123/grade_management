@@ -9,8 +9,8 @@ const wooksheetHandler = await WooksheetHandler.getInstance('6301012620171');
 const spreadsheetHelper = new SpreadsheetHelper();
 const databaseHandler = new DatabaseHandler();
 
-// console.log(await SpreadsheetHelper.prepareGradeAverageReportData());
+console.log(await SpreadsheetHelper.prepareGradeReportData());
 // console.log(spreadsheetHandler.rawData);
-console.log(await wooksheetHandler.getRow(42));
+// console.log(await wooksheetHandler.getMergeCol());
 
 await disconnect();

@@ -10,48 +10,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Student {
-  id                  Int                  @id @default(autoincrement())
-  year                Int
-  Enrollments         Enrollment[]
-  GradeAverageReports GradeAverageReport[]
+model students {
+  id                    Int                     @id @default(autoincrement())
+  student_year          Int
+  enrollments           enrollments[]
+  grade_average_reports grade_average_reports[]
 }
 
-model Course {
-  id          Int          @id @default(autoincrement())
-  code        String       @unique
-  name        String
-  credit      Int
-  Enrollments Enrollment[]
+model courses {
+  id            Int           @id @default(autoincrement())
+  course_code   String        @unique
+  course_name   String
+  course_credit Int
+  enrollments   enrollments[]
 }
 
-model GradeReport {
-  id         Int         @id @default(autoincrement())
-  letter     String
-  number     Float
-  Enrollment Enrollment?
+model grade_reports {
+  id           Int          @id @default(autoincrement())
+  letter_grade String
+  number_grade Float
+  enrollment   enrollments?
 }
 
-model GradeAverageReport {
-  id           Int    @id @default(autoincrement())
-  academicYear String
-  semester     String
-  gpa          String
-  gpax         String
+model grade_average_reports {
+  id            Int    @id @default(autoincrement())
+  academic_year String
+  semester      String
+  gpa           String
+  gpax          String
 
-  student   Student @relation(fields: [studentId], references: [id])
+  student   students @relation(fields: [studentId], references: [id])
   studentId Int
 }
 
-model Enrollment {
-  id           Int    @id @default(autoincrement())
-  semester     String
-  academicYear String
+model enrollments {
+  id            Int    @id @default(autoincrement())
+  semester      String
+  academic_year String
 
-  student       Student     @relation(fields: [studentId], references: [id])
-  studentId     Int
-  gradeReport   GradeReport @relation(fields: [gradeReportId], references: [id])
-  gradeReportId Int         @unique
-  course        Course      @relation(fields: [courseId], references: [id])
-  courseId      Int
+  student        students      @relation(fields: [student_id], references: [id])
+  student_id     Int
+  grade_Report   grade_reports @relation(fields: [gradeReport_id], references: [id])
+  gradeReport_id Int           @unique
+  course         courses       @relation(fields: [course_id], references: [id])
+  course_id      Int
 }
