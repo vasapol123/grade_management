@@ -34,8 +34,8 @@ model GradeReport {
 
 model GradeAverageReport {
   id           Int    @id @default(autoincrement())
-  semester     String
   academicYear String
+  semester     String
   gpa          String
   gpax         String
 

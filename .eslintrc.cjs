@@ -29,7 +29,8 @@ module.exports = {
         'ts': 'never',
         'tsx': 'never'
       }
-   ]
+   ],
+	 '@typescript-eslint/no-non-null-assertion': 'off'
 	},
 	settings: {
     'import/resolver': {

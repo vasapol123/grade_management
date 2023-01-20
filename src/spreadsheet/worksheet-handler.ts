@@ -18,6 +18,7 @@ import * as dotenv from 'dotenv';
 
 import redisClient from '../redis-connection.js';
 import { Attributes, AUTH, SHEETS } from '../common/constant.js';
+import SpreadsheetHandler from './spreadsheet-handler.js';
 
 dotenv.config();
 
@@ -88,29 +89,34 @@ export default class WorksheetHandler {
     return this._rawData![0];
   }
 
-  public async getRow(num: number): Promise<string[]> {
+  public async getRow(num: number): Promise<{ [key: string]: string }> {
     try {
-      const unpopulatedRow = <string[]>this._rawData[num - 1];
+      const result: { [key: string]: string } = {};
+      const headers = <(keyof typeof Attributes | string)[]>(
+        await this.getHeader()
+      );
+      const mergedCols = await this.getMergeCol();
 
+      const unpopulatedRow = <string[]>this._rawData[num - 1];
       const populatedRow = await Promise.all(
-        (<(keyof typeof Attributes | string)[]>await this.getHeader()).map(
-          async (curr, i) => {
-            if (
-              (<string[]>Object.keys(Attributes)).includes(curr.toUpperCase())
-            ) {
-              const col = await this.populateMergedCol(
-                <keyof typeof Attributes>curr.toUpperCase()
-              );
-              if (!unpopulatedRow[i]) {
-                return col[num - 1][0] || col[col.length - 1][0];
-              }
+        headers.map(async (curr, i) => {
+          if (curr.match(new RegExp(mergedCols.join('|'), 'i'))) {
+            const col = await this.populateMergedCol(
+              <keyof typeof Attributes>curr.toUpperCase()
+            );
+            if (!unpopulatedRow[i]) {
+              return col[num - 1][0] || col[col.length - 1][0];
             }
-            return unpopulatedRow[i];
           }
-        )
+          return unpopulatedRow[i];
+        })
       );
 
-      return populatedRow;
+      headers.forEach(function _(key, i) {
+        result[key] = populatedRow[i].trim();
+      });
+
+      return result;
     } catch (e) {
       throw Error((<GaxiosError>e).response?.statusText);
     }
@@ -127,6 +133,27 @@ export default class WorksheetHandler {
     } catch (e) {
       throw Error((<GaxiosError>e).response?.statusText);
     }
+  }
+
+  public async getMergeCol() {
+    const headers = <(keyof typeof Attributes | string)[]>(
+      await this.getHeader()
+    );
+    const sheets = await SpreadsheetHandler.getSheets();
+
+    const merges = <sheetsv4.Schema$GridRange[]>sheets.filter((curr) => {
+      return curr.properties?.title === this._sheetName;
+    })[0].merges;
+
+    const duplicated = merges.map((curr) => {
+      return headers[curr.startColumnIndex!];
+    });
+
+    const unduplicated = duplicated.filter((curr, i) => {
+      return duplicated.indexOf(curr) === i;
+    });
+
+    return unduplicated;
   }
 
   private async populateMergedCol(
