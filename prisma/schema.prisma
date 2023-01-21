@@ -36,11 +36,11 @@ model grade_average_reports {
   id            Int    @id @default(autoincrement())
   academic_year String
   semester      String
-  gpa           String
-  gpax          String
+  gpa           Float
+  gpax          Float
 
-  student   students @relation(fields: [studentId], references: [id])
-  studentId Int
+  student   students @relation(fields: [student_id], references: [id])
+  student_id Int
 }
 
 model enrollments {
@@ -50,8 +50,8 @@ model enrollments {
 
   student        students      @relation(fields: [student_id], references: [id])
   student_id     Int
-  grade_Report   grade_reports @relation(fields: [gradeReport_id], references: [id])
-  gradeReport_id Int           @unique
+  grade_report   grade_reports @relation(fields: [grade_report_id], references: [id])
+  grade_report_id Int           @unique
   course         courses       @relation(fields: [course_id], references: [id])
   course_id      Int
 }

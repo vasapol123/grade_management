@@ -1,14 +1,17 @@
 /* eslint-disable no-use-before-define */
 import { sheets_v4 as sheetsv4, Auth } from 'googleapis';
 
+import RedisClient from '../redis-connection.js';
 import { AUTH, SHEETS } from '../common/constant.js';
+
+const redisClient = RedisClient.getInstance();
 
 export default class SpreadsheetHandler {
   private static instance: SpreadsheetHandler;
 
-  private static googleAuth: Auth.GoogleAuth = AUTH;
+  private googleAuth: Auth.GoogleAuth = AUTH;
 
-  private static googleSheets: sheetsv4.Sheets = SHEETS;
+  private googleSheets: sheetsv4.Sheets = SHEETS;
 
   /* 
     eslint-disable-next-line no-useless-constructor, 
@@ -16,7 +19,7 @@ export default class SpreadsheetHandler {
   */
   private constructor() {}
 
-  public static async getInstance(): Promise<SpreadsheetHandler> {
+  public static getInstance(): SpreadsheetHandler {
     let { instance } = SpreadsheetHandler;
 
     if (!instance) {
@@ -26,12 +29,19 @@ export default class SpreadsheetHandler {
     return instance;
   }
 
-  public static async getSheets() {
-    const response = await SpreadsheetHandler.googleSheets.spreadsheets.get({
-      auth: SpreadsheetHandler.googleAuth,
-      spreadsheetId: <string>process.env.SPREADSHEET_ID,
-    });
+  public async getSheets(): Promise<sheetsv4.Schema$Sheet[]> {
+    if (!(await redisClient.Client!.get('spreadsheets'))) {
+      const response = await this.googleSheets.spreadsheets.get({
+        auth: this.googleAuth,
+        spreadsheetId: <string>process.env.SPREADSHEET_ID,
+      });
 
-    return response.data.sheets!;
+      redisClient.Client!.set(
+        'spreadsheets',
+        JSON.stringify(response.data.sheets)
+      );
+    }
+
+    return JSON.parse((await redisClient.Client!.get('spreadsheets'))!);
   }
 }

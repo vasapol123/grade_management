@@ -11,13 +11,33 @@
 
 /* eslint-disable camelcase */
 /* eslint-disable no-use-before-define */
+/* eslint-disable no-underscore-dangle */
 import { Prisma } from '@prisma/client';
+import {
+  coursesWithoutId,
+  enrollmentsWithoutId,
+  grade_average_reportsWithoutId,
+  grade_reportsWithoutId,
+} from './common/shared-type.js';
 import { GRADE_MAPPING } from './common/constant.js';
 import WorksheetHandler from './spreadsheet/worksheet-handler.js';
+import SpreadsheetHandler from './spreadsheet/spreadsheet-handler.js';
 
 const worksheetHandler = await WorksheetHandler.getInstance('6301012620171');
 
+const sheets = await SpreadsheetHandler.getInstance().getSheets();
+
 export default class DataPreparer {
+  static _studentIdMapping: Record<string, number> = sheets.reduce<
+    Record<string, number>
+  >(
+    (obj, key) => ({
+      ...obj,
+      [<string>key.properties!.title]: <number>key.properties!.index + 1,
+    }),
+    {}
+  );
+
   static studentCodeToYear(studentCode: string): number {
     const currentYear = Number(
       (Number(new Date().getFullYear()) + 543).toString().slice(-2)
@@ -28,16 +48,16 @@ export default class DataPreparer {
     return studentYear;
   }
 
-  static async prepareCourseData(): Promise<{ [name: string]: string }[]> {
+  static async prepareCourseData(): Promise<coursesWithoutId[]> {
     const coursesScalarFieldEnum = Object.keys(Prisma.CoursesScalarFieldEnum);
 
-    const courses: { [name: string]: string }[] = [];
+    const courses: coursesWithoutId[] = [];
 
     await Promise.all(
       Array(worksheetHandler.rawData.length)
         .fill(0)
         .map(async (curr, i) => {
-          if (i > 1) {
+          if (i >= 1) {
             await worksheetHandler.getRow(i + 1).then((values) => {
               const filtered = Object.keys(values)
                 .filter((key) => {
@@ -46,10 +66,14 @@ export default class DataPreparer {
                 .reduce((obj, key) => {
                   return {
                     ...obj,
-                    [key.toLowerCase()]: values[key],
+                    [key.toLowerCase()]: key
+                      .toLowerCase()
+                      .match(/course_credit/i)
+                      ? +values[key]
+                      : values[key],
                   };
                 }, {});
-              courses.push(filtered);
+              courses.push(<coursesWithoutId>filtered);
             });
           }
           return curr;
@@ -58,20 +82,20 @@ export default class DataPreparer {
     return courses;
   }
 
-  static async prepareGradeReportData() {
+  static async prepareGradeReportData(): Promise<grade_reportsWithoutId[]> {
     const grade_reportsScalarFieldEnum = Object.keys(
       Prisma.Grade_reportsScalarFieldEnum
     );
 
-    const gradeReports: { [name: string]: string }[] = [];
+    const gradeReports: grade_reportsWithoutId[] = [];
 
     await Promise.all(
       Array(worksheetHandler.rawData.length)
         .fill(0)
         .map(async (curr, i) => {
-          if (i > 1) {
+          if (i >= 1) {
             await worksheetHandler.getRow(i + 1).then((values) => {
-              const filtered:any = Object.keys(values)
+              const filtered = Object.keys(values)
                 .filter((key) => {
                   return (
                     grade_reportsScalarFieldEnum.findIndex((el) =>
@@ -85,13 +109,110 @@ export default class DataPreparer {
                     number_grade: GRADE_MAPPING[values[key]],
                   };
                 }, {});
-              gradeReports.push(filtered);
+              gradeReports.push(<grade_reportsWithoutId>filtered);
             });
           }
           return curr;
         })
     );
     return gradeReports;
+  }
+
+  static async prepareGradeAverageReportData(): Promise<
+    grade_average_reportsWithoutId[]
+  > {
+    const grade_average_reportsScalarFieldEnum = Object.keys(
+      Prisma.Grade_average_reportsScalarFieldEnum
+    );
+
+    const duplicated: grade_average_reportsWithoutId[] = [];
+
+    await Promise.all(
+      Array(worksheetHandler.rawData.length)
+        .fill(0)
+        .map(async (curr, i) => {
+          if (i >= 1) {
+            await worksheetHandler.getRow(i + 1).then((values) => {
+              const filtered = Object.keys(values)
+                .filter((key) => {
+                  return grade_average_reportsScalarFieldEnum.includes(
+                    key.toLowerCase()
+                  );
+                })
+                .reduce((obj, key) => {
+                  return {
+                    ...obj,
+                    [key.toLowerCase()]: key.toLowerCase().match(/gpa|gpax/i)
+                      ? +values[key]
+                      : values[key],
+                  };
+                }, {});
+              duplicated.push(<grade_average_reportsWithoutId>filtered);
+            });
+          }
+          return curr;
+        })
+    );
+
+    let unduplicated = duplicated.filter(
+      (curr, i, self) =>
+        i ===
+        self.findIndex(
+          (t) =>
+            t.semester === curr.semester &&
+            t.gpa === curr.gpa &&
+            t.gpax === curr.gpax
+        )
+    );
+
+    unduplicated = unduplicated.map((curr) => {
+      return {
+        ...curr,
+        student_id: this._studentIdMapping[worksheetHandler.sheetName],
+      };
+    });
+
+    return unduplicated;
+  }
+
+  static async prepareEnrollmentData(): Promise<enrollmentsWithoutId[]> {
+    const enrollmentsScalarFieldEnum = Object.keys(
+      Prisma.EnrollmentsScalarFieldEnum
+    );
+
+    let enrollments: enrollmentsWithoutId[] = [];
+
+    await Promise.all(
+      Array(worksheetHandler.rawData.length)
+        .fill(0)
+        .map(async (curr, i) => {
+          if (i >= 1) {
+            await worksheetHandler.getRow(i + 1).then((values) => {
+              const filtered = Object.keys(values)
+                .filter((key) => {
+                  return enrollmentsScalarFieldEnum.includes(key.toLowerCase());
+                })
+                .reduce((obj, key) => {
+                  return {
+                    ...obj,
+                    [key.toLowerCase()]: values[key],
+                  };
+                }, {});
+              enrollments.push(<enrollmentsWithoutId>filtered);
+            });
+          }
+          return curr;
+        })
+    );
+
+    enrollments = enrollments.map((curr) => {
+      return {
+        ...curr,
+        student_id: this._studentIdMapping[worksheetHandler.sheetName],
+      };
+    });
+
+    return enrollments;
   }
 
   static async prepareStudentData(): Promise<{ student_year: number }> {

@@ -13,12 +13,16 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-underscore-dangle */
 import { sheets_v4 as sheetsv4, Auth } from 'googleapis';
-import { GaxiosError } from 'gaxios';
 import * as dotenv from 'dotenv';
 
-import redisClient from '../redis-connection.js';
+import RedisClient from '../redis-connection.js';
 import { Attributes, AUTH, SHEETS } from '../common/constant.js';
 import SpreadsheetHandler from './spreadsheet-handler.js';
+
+const spreadsheetHandler = SpreadsheetHandler.getInstance();
+
+const redisClient = RedisClient.getInstance();
+await redisClient.connect();
 
 dotenv.config();
 
@@ -71,7 +75,7 @@ export default class WorksheetHandler {
   }
 
   public static async fetchData(sheetName: string): Promise<string[][]> {
-    if (!(await redisClient.get('rawData'))) {
+    if (!(await redisClient.Client!.get('rawData'))) {
       const response =
         await WorksheetHandler.googleSheets.spreadsheets.values.get({
           auth: WorksheetHandler.googleAuth,
@@ -79,10 +83,10 @@ export default class WorksheetHandler {
           range: `${sheetName}!A1:Z1000`,
         });
 
-      redisClient.set('rawData', JSON.stringify(response.data.values));
+      redisClient.Client!.set('rawData', JSON.stringify(response.data.values));
     }
 
-    return JSON.parse((await redisClient.get('rawData'))!);
+    return JSON.parse((await redisClient.Client!.get('rawData'))!);
   }
 
   public async getHeader(): Promise<string[]> {
@@ -90,56 +94,48 @@ export default class WorksheetHandler {
   }
 
   public async getRow(num: number): Promise<{ [key: string]: string }> {
-    try {
-      const result: { [key: string]: string } = {};
-      const headers = <(keyof typeof Attributes | string)[]>(
-        await this.getHeader()
-      );
-      const mergedCols = await this.getMergeCol();
+    const result: { [key: string]: string } = {};
+    const headers = <(keyof typeof Attributes | string)[]>(
+      await this.getHeader()
+    );
+    const mergedCols = await this.getMergeCol();
 
-      const unpopulatedRow = <string[]>this._rawData[num - 1];
-      const populatedRow = await Promise.all(
-        headers.map(async (curr, i) => {
-          if (curr.match(new RegExp(mergedCols.join('|'), 'i'))) {
-            const col = await this.populateMergedCol(
-              <keyof typeof Attributes>curr.toUpperCase()
-            );
-            if (!unpopulatedRow[i]) {
-              return col[num - 1][0] || col[col.length - 1][0];
-            }
+    const unpopulatedRow = <string[]>this._rawData[num - 1];
+    const populatedRow = await Promise.all(
+      headers.map(async (curr, i) => {
+        if (curr.match(new RegExp(mergedCols.join('|'), 'i'))) {
+          const col = await this.populateMergedCol(
+            <keyof typeof Attributes>curr.toUpperCase()
+          );
+          if (!unpopulatedRow[i]) {
+            return col[num - 1][0] || col[col.length - 1][0];
           }
-          return unpopulatedRow[i];
-        })
-      );
+        }
+        return unpopulatedRow[i];
+      })
+    );
 
-      headers.forEach(function _(key, i) {
-        result[key] = populatedRow[i].trim();
-      });
+    headers.forEach(function _(key, i) {
+      result[key] = populatedRow[i].trim();
+    });
 
-      return result;
-    } catch (e) {
-      throw Error((<GaxiosError>e).response?.statusText);
-    }
+    return result;
   }
 
   public async getCol(num: number) {
-    try {
-      const col = this._rawData!.map((curr) => {
-        if (!curr[num - 1]) return [];
-        return [curr[num - 1].trim()];
-      });
+    const col = this._rawData!.map((curr) => {
+      if (!curr[num - 1]) return [];
+      return [curr[num - 1].trim()];
+    });
 
-      return col;
-    } catch (e) {
-      throw Error((<GaxiosError>e).response?.statusText);
-    }
+    return col;
   }
 
   public async getMergeCol() {
     const headers = <(keyof typeof Attributes | string)[]>(
       await this.getHeader()
     );
-    const sheets = await SpreadsheetHandler.getSheets();
+    const sheets = await spreadsheetHandler.getSheets();
 
     const merges = <sheetsv4.Schema$GridRange[]>sheets.filter((curr) => {
       return curr.properties?.title === this._sheetName;
@@ -159,15 +155,11 @@ export default class WorksheetHandler {
   private async populateMergedCol(
     value: keyof typeof Attributes
   ): Promise<string[][]> {
-    try {
-      const col = await this.getCol(Attributes[value]);
+    const col = await this.getCol(Attributes[value]);
 
-      return col.map((curr, i, arr) => {
-        if (!curr.length) arr[i].push(arr[i - 1][0]);
-        return curr;
-      });
-    } catch (e) {
-      throw Error((<GaxiosError>e).response?.statusText);
-    }
+    return col.map((curr, i, arr) => {
+      if (!curr.length) arr[i].push(arr[i - 1][0]);
+      return curr;
+    });
   }
 }

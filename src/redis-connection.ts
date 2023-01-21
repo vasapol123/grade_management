@@ -1,14 +1,38 @@
-import redis from 'redis';
+/* eslint-disable no-use-before-define */
+import redis from 'ioredis';
 
-const redisClient = redis.createClient();
+export default class RedisClient {
+  private static instance: RedisClient;
 
-redisClient.on('error', (error) => console.error(`Error Redis: ${error}`));
+  public Client: redis.Redis | null = null;
 
-await redisClient.connect();
+  /* 
+    eslint-disable-next-line no-useless-constructor, 
+    @typescript-eslint/no-empty-function
+  */
+  private constructor() {}
 
-const disconnect = async (): Promise<void> => {
-  await redisClient.disconnect();
-};
+  public static getInstance(): RedisClient {
+    if (!RedisClient.instance) {
+      RedisClient.instance = new RedisClient();
+    }
 
-export default redisClient;
-export { disconnect };
+    return RedisClient.instance;
+  }
+
+  async connect() {
+    this.Client = redis.Redis.createClient();
+
+    this.Client.on('error', (error) => {
+      console.error(`Error Redis: ${error}`);
+    });
+
+    return this.Client;
+  }
+
+  disconnect() {
+    if (this.Client) {
+      this.Client.disconnect();
+    }
+  }
+}
